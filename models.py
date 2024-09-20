@@ -5,6 +5,36 @@ from sqlalchemy.ext.associationproxy import association_proxy
 
 Base = declarative_base()
 
+#venue model
+class Venue(Base):
+    __tablename__ = 'venues'
+
+    id = Column(Integer(), primary_key=True)
+    title = Column(String())
+    city = Column(String())
+
+    #relationships
+    concerts = relationship("Concert", back_populates='venue')
+    bands = association_proxy('concerts', 'band', creator=lambda band: Concert(band=band))
+
+    def venue_concerts(self):
+        """returns a collection of all the concerts for the Venue"""
+        return self.concerts
+    
+    def venue_bands(self):
+        """returns a collection of all the bands who performed at the Venue"""
+        return self.bands
+    
+    def concert_on(self, date):
+        """queries and returns the first concert on a given date at a venue"""
+        first_concert = mysession.query(Concert).filter_by(venue_id=self.id, date=date).first()
+        return first_concert
+    
+    def most_frequent_band(self):
+        """returns the band with most concerts at a venue on a given date"""
+        return mysession.query(Band).join(Concert).filter(Concert.venue_id == self.id).group_by(Band.id).order_by(func.count(Concert.id).desc()).first()
+ 
+
 #band model
 class Band(Base):
     __tablename__ = 'bands'
@@ -25,25 +55,26 @@ class Band(Base):
         """returns a collection of all the venues that the Band has performed at"""
         return self.venues
 
-#venue model
-class Venue(Base):
-    __tablename__ = 'venues'
-
-    id = Column(Integer(), primary_key=True)
-    title = Column(String())
-    city = Column(String())
-
-    #relationships
-    concerts = relationship("Concert", back_populates='venue')
-    bands = association_proxy('concerts', 'band', creator=lambda band: Concert(band=band))
-
-    def venue_concerts(self):
-        """returns a collection of all the concerts for the Venue"""
-        return self.concerts
+    def play_in_venue(self, date, venue):
+        """creates a new concert for the band in a given venue and date"""
+        new_concert = Concert(date=date, band=self, venue=venue)
+        mysession.add(new_concert)
+        mysession.commit()
+        return new_concert
     
-    def venue_bands(self):
-        """returns a collection of all the bands who performed at the Venue"""
-        return self.bands
+    def all_introductions(self):
+        """returns an list of a band's introductions"""
+        all_introductions = []
+        for concert in self.concerts: 
+            all_introductions.append(concert.introduction())
+        return all_introductions
+    
+    @classmethod
+    def most_performances(cls):
+        """returns the band that has played the most concerts"""
+        return mysession.query(Band).join(Concert).group_by(Band.id).order_by(func.count(Concert.id).desc()).first()
+  
+    
 #concert model
 class Concert(Base):
     __tablename__ = 'concerts'    
@@ -58,26 +89,27 @@ class Concert(Base):
     venue = relationship('Venue', back_populates='concerts')
 
     #methods
-    def band(self):
+    def get_band(self):
         """return the Band instance for this Concert"""
         return self.band
     
-    def venue(self):
+    def get_venue(self):
         """return the Venue instance for this Concert"""
         return self.venue
      
+    def hometown_show(self):
+        """returns true if the concert is in the band's hometown, false if it is not"""
+        if self.band.hometown == self.venue.city:
+            return True
+        else:
+            return False
+        
+    def introduction(self):
+        """returns a string with the band's introduction for this concert"""    
+        return f"Hello {self.venue.city}!!!!! We are {self.band.name} and we're from {self.band.hometown} "
 
 # Sets up the database engine and session
 engine = create_engine('sqlite:///band_concerts.db')
 Session = sessionmaker(bind=engine)
 mysession = Session()
 
-# Creates test instances of Band and Venue
-# band1 = Band(name="band3", hometown="Canada")
-# band2 = Band(name="band4", hometown="USA")
-# venue1 = Venue(title="venue3", city="Toronto")
-# venue2 = Venue(title="venue4", city="Miami")
-
-# # Add to session and commit
-# mysession.add_all([band1, band2, venue1, venue2])
-# mysession.commit()
