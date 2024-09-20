@@ -38,26 +38,29 @@ Make sure you have the following installed:
 ## Installation Instructions
 1. Clone the Repository
   ```bash
-      git clone https://github.com/your-repo/band-concerts-database.git
+      git clone [https://github.com/your-repo/band-concerts-database.git](https://github.com/BrendahKiragu/week-3-python-code-chalenge)
       cd band-concerts-database  
 
-2. Create a virtual environment and install this project's dependencies:
+2. Create a virtual environment and install this project's dependencies. Then navigate to a subshell:
     ```bash
        pipenv install
        pipenv shell
     
 3. Create and set up the SQLite database:
-    - The database file `band_concerts.db` will automatically be created when the program is run for the first time.
+    - The database file `band_concerts.db` will automatically be created when you run pipenv install.
+
+4. Install SQLAlchemy:
+    ```bash
+       pip install sqlalchemy
 
 ## Usage
-1. Run the Script to Create Database Schema:
-     python models.py
-
-2. Interacting with the database
-   - You can query bands, venues, and concerts using the defined models and methods, for example to query the most frequent band at a venue:
+1. Interacting with the database
+   - You can query bands, venues, and concerts using the defined models and methods, for example, to query the most frequent band at a venue, add this in the models.py file:
    ```bash
        venue = mysession.query(Venue).first()
        print(venue.most_frequent_band().name)
-    
+   - Then run the Script on the terminal:
+        `python models.py`
+ 
     - You can also add to the database using the predefined methods in the `seed.py file`. 
-    - To do so, uncomment the function calls in the `seed.py` then on the terminal run 'python seed.py`
+        - To do so, uncomment the function calls in the `seed.py` then on the terminal run 'python seed.py`
