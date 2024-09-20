@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, create_engine, ForeignKey
+from sqlalchemy import Column, Integer, String, create_engine, ForeignKey, func
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.associationproxy import association_proxy
 
@@ -113,3 +113,18 @@ engine = create_engine('sqlite:///band_concerts.db')
 Session = sessionmaker(bind=engine)
 mysession = Session()
 
+
+#uncomment below for example usage for VENUE model
+# v1 = mysession.query(Venue).first()    
+# print(f"{v1.title} has held {v1.venue_concerts()} concerts for these bands{v1.venue_bands()}")
+# frequent_band = v1.most_frequent_band()
+# print(frequent_band.name)
+
+
+#uncomment below to run example usage for Band model   
+# band1 = mysession.query(Band).first()    
+# print(f"{band1.name} has had these concerts {band1.band_concerts()} at these venues{band1.band_venues()}") 
+
+#Uncomment below for example usage for CONCERT model
+# first_concert = mysession.query(Concert).first()
+# print(f"The concert on {first_concert.date} was at {first_concert.venue.city}, {first_concert.band.hometown}")
